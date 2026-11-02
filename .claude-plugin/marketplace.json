@@ -1,0 +1,14 @@
+{
+  "name": "kyde-score-skill",
+  "owner": {
+    "name": "Kyde",
+    "url": "https://kyde.com"
+  },
+  "plugins": [
+    {
+      "name": "kyde-score",
+      "source": "./plugins/kyde-score",
+      "description": "Integrate an agent harness with kyde score (score.kyde.com): create a scoring key, point the OpenTelemetry exporter at the service, verify ingest, optionally add the MCP server for in-session drift checks."
+    }
+  ]
+}
