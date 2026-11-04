@@ -142,8 +142,11 @@ claude mcp add --transport http kyde-score https://score.kyde.com/mcp \
 "headers": {"x-kyde-key": "<KEY>"}}`.)
 
 Tools: `get_scores` (check drift, including your own, mid-session),
-`set_webhook`, `create_key`, `revoke_key` (destructive: deletes the key
-and all data; requires `confirm: true` — never call it without the human
+`set_webhook`, `create_key`, `rebaseline` (forget one agent's baseline
+and alarms, relearn from its next 30 runs — for intended behavior changes
+that left it permanently deviating; requires `confirm: true` and the
+human's go-ahead), `revoke_key` (destructive: deletes the key and all
+data; requires `confirm: true` — never call it without the human
 asking).
 
 ## Facts worth relaying to the human
