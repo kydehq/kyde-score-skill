@@ -76,10 +76,26 @@ the variables above and ends with `exec claude "$@"`, and launch that
 instead of `claude`. (`OTEL_METRICS_EXPORTER` is not needed; scoring reads
 the log events.)
 
+**Grok CLI** (double opt-in like Claude Code; its Rust exporter is
+protobuf-only, which the service accepts):
+
+```bash
+export GROK_EXTERNAL_OTEL=1
+export OTEL_LOGS_EXPORTER=otlp
+export OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+export OTEL_EXPORTER_OTLP_ENDPOINT=https://score.kyde.com
+export OTEL_EXPORTER_OTLP_HEADERS="x-kyde-key=<KEY>"
+```
+
+Grok CLI pins `service.name` to `grok-cli` and ignores
+`OTEL_SERVICE_NAME`, so all Grok agents under one key currently score as
+a single agent.
+
 **Any OTel SDK / other harnesses** (Codex, OpenCode, frameworks): the last
 four variables above are the whole integration. The service accepts
-OTLP/HTTP **JSON** (`OTEL_EXPORTER_OTLP_PROTOCOL=http/json` — protobuf is
-not accepted yet, so this variable is not optional).
+OTLP/HTTP as binary protobuf or JSON — set `OTEL_EXPORTER_OTLP_PROTOCOL`
+explicitly (`http/protobuf` works from every SDK; `http/json` exists only
+in the JS ones).
 
 **OTel Collector in between** (recommended when telemetry must be
 scrubbed before leaving a network): add an `otlphttp` exporter with
@@ -98,8 +114,9 @@ Success looks like the agent listed with `"status": "learning"` and a
 empty `agents` list means nothing arrived: first check WHERE the
 variables are set — for Claude Code they must be in the launching shell,
 a wrapper script, or `~/.claude/settings.json`, never in the project's
-`.claude/settings.json` (ignored by design) — then check the protocol is
-`http/json` and the header spelling. A `"degraded"` field means records
+`.claude/settings.json` (ignored by design) — then check the protocol
+variable is set (`http/protobuf` or `http/json`) and the header spelling.
+A `"degraded"` field means records
 were dropped (quota/limits) — surface it to the human rather than
 ignoring it.
 
