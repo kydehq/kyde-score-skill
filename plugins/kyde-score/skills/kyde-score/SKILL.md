@@ -56,17 +56,25 @@ Rate limit: 5 keys/hour/IP — do not create keys in a loop.
 Give every agent its own `OTEL_SERVICE_NAME`; that name is the unit of
 scoring.
 
-**Claude Code** (settings env or the shell that launches it):
+**Claude Code**:
 
 ```bash
 export CLAUDE_CODE_ENABLE_TELEMETRY=1
 export OTEL_LOGS_EXPORTER=otlp
-export OTEL_METRICS_EXPORTER=otlp
 export OTEL_EXPORTER_OTLP_PROTOCOL=http/json
 export OTEL_EXPORTER_OTLP_ENDPOINT=https://score.kyde.com
 export OTEL_EXPORTER_OTLP_HEADERS="x-kyde-key=<KEY>"
 export OTEL_SERVICE_NAME=<agent-name>
 ```
+
+Where these go matters. They work from the shell that launches `claude`,
+from user-level `~/.claude/settings.json` (`"env"` block), or from managed
+settings. Claude Code **ignores OTel exporter variables in a project's
+`.claude/settings.json` and `.claude/settings.local.json` by design**, so
+for a per-project integration write a small wrapper script that exports
+the variables above and ends with `exec claude "$@"`, and launch that
+instead of `claude`. (`OTEL_METRICS_EXPORTER` is not needed; scoring reads
+the log events.)
 
 **Any OTel SDK / other harnesses** (Codex, OpenCode, frameworks): the last
 four variables above are the whole integration. The service accepts
@@ -86,10 +94,14 @@ curl -s https://score.kyde.com/score/v0/scores -H "x-kyde-key: <KEY>"
 ```
 
 Success looks like the agent listed with `"status": "learning"` and a
-`runs_seen` count. An empty `agents` list means nothing arrived: check
-the protocol is `http/json` and the header spelling. A `"degraded"`
-field means records were dropped (quota/limits) — surface it to the
-human rather than ignoring it.
+`runs_seen` count (logs flush every ~5 s, so allow a few seconds). An
+empty `agents` list means nothing arrived: first check WHERE the
+variables are set — for Claude Code they must be in the launching shell,
+a wrapper script, or `~/.claude/settings.json`, never in the project's
+`.claude/settings.json` (ignored by design) — then check the protocol is
+`http/json` and the header spelling. A `"degraded"` field means records
+were dropped (quota/limits) — surface it to the human rather than
+ignoring it.
 
 Scoring starts automatically once 30 runs are seen (`"status": "scored"`,
 with `score` and `band`). There is nothing to configure for that; just
