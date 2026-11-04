@@ -91,11 +91,18 @@ Grok CLI pins `service.name` to `grok-cli` and ignores
 `OTEL_SERVICE_NAME`, so all Grok agents under one key currently score as
 a single agent.
 
-**Any OTel SDK / other harnesses** (Codex, OpenCode, frameworks): the last
-four variables above are the whole integration. The service accepts
-OTLP/HTTP as binary protobuf or JSON — set `OTEL_EXPORTER_OTLP_PROTOCOL`
-explicitly (`http/protobuf` works from every SDK; `http/json` exists only
-in the JS ones).
+**Any OTel SDK / other harnesses** (Codex, OpenCode): the last four
+variables above are the whole integration. The service accepts OTLP/HTTP
+as binary protobuf or JSON — set `OTEL_EXPORTER_OTLP_PROTOCOL` explicitly
+(`http/protobuf` works from every SDK; `http/json` exists only in the JS
+ones).
+
+**Framework agents** (Vercel AI SDK, LangGraph, OpenAI Agents, custom
+loops): no Kyde SDK needed — add any GenAI instrumentation that emits
+`gen_ai.*` spans (OpenLLMetry, OpenInference, vendor telemetry) and point
+its OTLP exporter at the service with the same variables. Tool spans
+(`gen_ai.tool.name`, or `gen_ai.operation.name=execute_tool`) are scored
+like tool events; content attributes are never read.
 
 **OTel Collector in between** (recommended when telemetry must be
 scrubbed before leaving a network): add an `otlphttp` exporter with
