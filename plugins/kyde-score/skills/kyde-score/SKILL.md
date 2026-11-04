@@ -145,7 +145,8 @@ Tools: `get_scores` (check drift, including your own, mid-session),
 `set_webhook`, `create_key`, `rebaseline` (forget one agent's baseline,
 relearn from its next 30 runs — for intended behavior changes that left
 it permanently deviating; the reset is permanently visible via
-`rebaselined_at` and kept alarms; requires `confirm: true` and the
+`rebaselined_at`, kept alarms and a `rebaseline` alarm entry naming the
+erased score; requires `confirm: true` and the
 human's explicit go-ahead — NEVER call it on your own initiative, least
 of all on yourself), `revoke_key` (destructive: deletes the key and all
 data; requires `confirm: true` — never call it without the human
