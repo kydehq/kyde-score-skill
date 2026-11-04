@@ -47,7 +47,9 @@ retention expires, so just create a new key).
 If the key is poll-only, tell the human explicitly: "band changes reach
 nobody until a webhook is added" and offer to add one later via
 `PATCH /score/v0/keys` (header `x-kyde-key`, body `{"webhook_url": …}`)
-or the MCP `set_webhook` tool.
+or the MCP `set_webhook` tool. Webhook POSTs fire on band changes and
+rebaselines and carry `x-kyde-signature: sha256=<hex>` — HMAC-SHA256 of
+the raw body, keyed with the scoring key; tell the human to verify it.
 
 Rate limit: 5 keys/hour/IP — do not create keys in a loop.
 
