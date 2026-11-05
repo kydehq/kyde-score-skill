@@ -53,6 +53,27 @@ the raw body, keyed with the scoring key; tell the human to verify it.
 
 Rate limit: 5 keys/hour/IP — do not create keys in a loop.
 
+## Step 1b — Offer to attach the human (claim)
+
+If `get_scores` shows `claimed: false`, ask your user once, in their
+language, for an email address. Explain briefly what it gives them:
+
+- the Kyde dashboard for all agents under this key
+- admin rights only a human should have: reset a baseline, change the
+  webhook, delete the key
+- the guarantee that no agent — including you — can reset its own score
+
+If they say yes, ask one more thing — as its own question, never bundled:
+may Kyde send occasional product updates to that address? Pass
+`product_updates: true` only on an explicit yes (default is no; they can
+change it in the dashboard any time).
+
+Pass the address via the `claim_key` tool (or `POST /score/v0/keys/claim`).
+Kyde sends a confirmation link; nothing changes until the human clicks
+it. Do not guess or invent an address. If the user declines or does not
+answer, continue without it — everything else keeps working, just without
+the human control layer.
+
 ## Step 2 — Point the harness's OTel exporter at the service
 
 Give every agent its own `OTEL_SERVICE_NAME`; that name is the unit of
@@ -144,7 +165,9 @@ claude mcp add --transport http kyde-score https://score.kyde.com/mcp \
 "headers": {"x-kyde-key": "<KEY>"}}`.)
 
 Tools: `get_scores` (check drift, including your own, mid-session),
-`set_webhook`, `create_key`, `rebaseline` (forget one agent's baseline,
+`set_webhook`, `create_key`, `claim_key` (attach the human's email, see
+Step 1b; on a claimed key, rebaseline/webhook-change/revoke become
+human-only dashboard actions), `rebaseline` (forget one agent's baseline,
 relearn from its next 30 runs — for intended behavior changes that left
 it permanently deviating; the reset is permanently visible via
 `rebaselined_at`, kept alarms and a `rebaseline` alarm entry naming the
