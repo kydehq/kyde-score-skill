@@ -12,7 +12,33 @@ fire an HMAC-signed webhook. Agents are identified by OTel `service.name`;
 one key covers all agents under it. Canonical machine-readable reference:
 https://score.kyde.com/llms.txt
 
-## Step 0 — Check for an existing integration
+## Step 0 — Place yourself
+
+The agent reading this is usually the agent to integrate. Before picking
+instructions, classify yourself:
+
+- **Shell, or env vars for your own process?** The integration below
+  applies to you directly — start from the generic variables in Step 2
+  and your own harness, not from another product.
+- **A known harness** (Claude Code, Grok CLI, Codex, OpenCode)? Use that
+  harness's block in Step 2 — your own harness first, whichever you are.
+- **An agent built on an SDK** (Python/Node, LangGraph, Vercel AI SDK,
+  OpenAI Agents)? Use the framework block in Step 2.
+- **A hosted product without a shell and without control over your own
+  process's environment?** Then you have no way to export OTel yourself.
+  Run the smoke test in Step 3 from any shell the human has; if none
+  exists, say so.
+
+Two rules, always:
+
+- **Never install a different agent product as a substitute** to get
+  telemetry (no installing Claude Code to monitor a Grok agent).
+- Say **"not supported" only after** the capability check above and the
+  smoke test in Step 3 have actually failed — and then name what is
+  missing (an OTLP/HTTP exporter for the agent's process), instead of
+  redirecting to another harness.
+
+## Step 0b — Check for an existing integration
 
 Look before creating anything: an `OTEL_EXPORTER_OTLP_ENDPOINT` containing
 `score.kyde.com`, an `x-kyde-key` in the harness config/env, or a
@@ -83,15 +109,27 @@ the human control layer.
 Give every agent its own `OTEL_SERVICE_NAME`; that name is the unit of
 scoring.
 
-**Claude Code**:
+**The generic way — any OTLP/HTTP exporter, any OTel SDK, Codex,
+OpenCode** (and the base every harness below builds on):
+
+```bash
+export OTEL_EXPORTER_OTLP_ENDPOINT=https://score.kyde.com
+export OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+export OTEL_EXPORTER_OTLP_HEADERS="x-kyde-key=<KEY>"
+export OTEL_SERVICE_NAME=<agent-name>
+```
+
+These four variables are the whole integration. The service accepts
+OTLP/HTTP as binary protobuf or JSON — set `OTEL_EXPORTER_OTLP_PROTOCOL`
+explicitly (`http/protobuf` works from every SDK; `http/json` exists only
+in the JS ones).
+
+**Claude Code** — the generic variables (with `http/json` fine too) plus
+two more:
 
 ```bash
 export CLAUDE_CODE_ENABLE_TELEMETRY=1
 export OTEL_LOGS_EXPORTER=otlp
-export OTEL_EXPORTER_OTLP_PROTOCOL=http/json
-export OTEL_EXPORTER_OTLP_ENDPOINT=https://score.kyde.com
-export OTEL_EXPORTER_OTLP_HEADERS="x-kyde-key=<KEY>"
-export OTEL_SERVICE_NAME=<agent-name>
 ```
 
 Where these go matters. They work from the shell that launches `claude`,
@@ -103,26 +141,19 @@ the variables above and ends with `exec claude "$@"`, and launch that
 instead of `claude`. (`OTEL_METRICS_EXPORTER` is not needed; scoring reads
 the log events.)
 
-**Grok CLI** (double opt-in like Claude Code; its Rust exporter is
-protobuf-only, which the service accepts):
+**Grok CLI** — its own opt-in instead (double opt-in like Claude Code;
+its Rust exporter is protobuf-only, which the service accepts), plus the
+generic endpoint/header variables:
 
 ```bash
 export GROK_EXTERNAL_OTEL=1
 export OTEL_LOGS_EXPORTER=otlp
 export OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
-export OTEL_EXPORTER_OTLP_ENDPOINT=https://score.kyde.com
-export OTEL_EXPORTER_OTLP_HEADERS="x-kyde-key=<KEY>"
 ```
 
 Grok CLI pins `service.name` to `grok-cli` and ignores
 `OTEL_SERVICE_NAME`, so all Grok agents under one key currently score as
 a single agent.
-
-**Any OTel SDK / other harnesses** (Codex, OpenCode): the last four
-variables above are the whole integration. The service accepts OTLP/HTTP
-as binary protobuf or JSON — set `OTEL_EXPORTER_OTLP_PROTOCOL` explicitly
-(`http/protobuf` works from every SDK; `http/json` exists only in the JS
-ones).
 
 **Framework agents** (Vercel AI SDK, LangGraph, OpenAI Agents, custom
 loops): no Kyde SDK needed — add any GenAI instrumentation that emits
@@ -153,6 +184,32 @@ variable is set (`http/protobuf` or `http/json`) and the header spelling.
 A `"degraded"` field means records
 were dropped (quota/limits) — surface it to the human rather than
 ignoring it.
+
+**Universal smoke test** — when nothing arrives (or before touching any
+harness config), one curl from any shell proves connection, key and
+schema, independent of the harness. Use the throwaway service name shown,
+**never the real agent's**: every stored record trains that service's
+baseline (the throwaway service just counts as one of the key's 200 and
+ages out with retention):
+
+```bash
+curl -s https://score.kyde.com/v1/logs -H "x-kyde-key: <KEY>" \
+  -H 'content-type: application/json' \
+  -d '{"resourceLogs":[{"resource":{"attributes":[{"key":"service.name","value":{"stringValue":"kyde-connectivity-test"}}]},"scopeLogs":[{"logRecords":[{"attributes":[{"key":"event.name","value":{"stringValue":"tool_result"}},{"key":"session.id","value":{"stringValue":"smoke-1"}},{"key":"tool_name","value":{"stringValue":"smoke_test"}}]}]}]}]}'
+```
+
+`"stored": 1` in the response (and `kyde-connectivity-test` listed as
+`"learning"` in the scores call) means service, key and schema are fine —
+a missing agent is then a harness-side problem: the variables never
+reached the agent's process (see Step 2). `"stored": 0` with a
+`partialSuccess.errorMessage` means the payload shape. An HTTP 401 means
+the key.
+
+**When is the integration done?** Only when the scores response lists the
+**intended** `service.name` with `runs_seen >= 1` from a real agent run
+(for Grok CLI that name is always `grok-cli`). A created key, a claim or
+a webhook alone is setup, not an integration — do not report success
+before that first run is visible.
 
 Scoring starts automatically once 30 runs are seen (`"status": "scored"`,
 with `score` and `band`). There is nothing to configure for that; just
