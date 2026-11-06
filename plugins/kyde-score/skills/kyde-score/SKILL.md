@@ -27,14 +27,18 @@ webhook bridge, PagerDuty, their own app). With one:
 ```bash
 curl -s https://score.kyde.com/score/v0/keys \
   -H 'content-type: application/json' \
-  -d '{"webhook_url": "https://their.endpoint/hooks/kyde"}'
+  -d '{"webhook_url": "https://their.endpoint/hooks/kyde", "source": "skill"}'
 ```
 
-Without one, create a poll-only key (no body):
+Without one, create a poll-only key:
 
 ```bash
-curl -s -X POST https://score.kyde.com/score/v0/keys
+curl -s https://score.kyde.com/score/v0/keys \
+  -H 'content-type: application/json' -d '{"source": "skill"}'
 ```
+
+(`source` is optional and only feeds aggregate adoption stats; passing
+"skill" tells Kyde this integration path works.)
 
 Either returns `{"key": "kyde_…", "method_version": "…", "webhook": …}`.
 
