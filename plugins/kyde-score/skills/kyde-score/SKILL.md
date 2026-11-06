@@ -85,9 +85,11 @@ nobody until a webhook is added" and offer to add one later via
 `PATCH /score/v0/keys` (header `x-kyde-key`, body `{"webhook_url": …}`)
 or the MCP `set_webhook` tool. Webhook POSTs fire once when a service's
 first data arrives (`first_data` — the signal that the integration
-works), on band changes and on rebaselines, and carry
-`x-kyde-signature: sha256=<hex>` — HMAC-SHA256 of the raw body, keyed
-with the scoring key; tell the human to verify it.
+works), on a runaway loop while an agent is still learning (`loop`;
+once scored, loops drive the score and band instead), on band changes
+and on rebaselines, and carry `x-kyde-signature: sha256=<hex>` —
+HMAC-SHA256 of the raw body, keyed with the scoring key; tell the human
+to verify it.
 
 Rate limit: 5 keys/hour/IP — do not create keys in a loop.
 
@@ -186,7 +188,9 @@ Success looks like the agent listed with `"status": "learning"` and a
 `runs_seen` count (logs flush every ~5 s, so allow a few seconds); the
 response also carries `runs_needed`, so report progress to the human as
 "runs_seen of runs_needed". A claimed key additionally mails the human
-when the first data arrives and when the first score is in. An
+when the first data arrives, after 10 runs (a report of what the agent
+actually does), when the first score is in — and once after 24 hours
+if no data ever arrived. An
 empty `agents` list means nothing arrived: first check WHERE the
 variables are set — for Claude Code they must be in the launching shell,
 a wrapper script, or `~/.claude/settings.json`, never in the project's
