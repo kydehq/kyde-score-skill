@@ -1,7 +1,7 @@
 {
   "name": "kyde-score",
   "description": "Integrate an agent harness with kyde score (score.kyde.com), hosted behavioral drift scoring for AI agents: create a scoring key, point the OpenTelemetry exporter at the service, verify ingest, optionally add the MCP server for in-session drift checks.",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "author": {
     "name": "Kyde",
     "url": "https://kyde.com"
