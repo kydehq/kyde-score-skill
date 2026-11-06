@@ -5,6 +5,13 @@ description: Integrate an AI agent or agent harness with kyde score (score.kyde.
 
 # Integrate kyde score
 
+This file is meant to be followed verbatim — the exact commands matter.
+Some web tools return a summary of a fetched page instead of its text and
+drop the commands. If what you are reading has no `curl` blocks, you have
+a summary: download the raw file first (`curl -s
+https://score.kyde.com/skill.md`), or use the compact reference at
+https://score.kyde.com/llms.txt.
+
 kyde score learns each agent's behavioral baseline from its OpenTelemetry
 and scores every later run 0–100 against it with deterministic detectors
 (no LLM). 70–100 normal, 40–69 watch, 0–39 deviating. A band change can
