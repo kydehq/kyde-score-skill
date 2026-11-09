@@ -78,7 +78,9 @@ curl -s https://score.kyde.com/score/v0/keys \
 ```
 
 (`source` is optional and only feeds aggregate adoption stats; passing
-"skill" tells Kyde this integration path works.)
+"skill" tells Kyde this integration path works. If the key is only for a
+benchmark, an eval or a smoke test, add `"purpose": "test"` so it stays
+out of KYDE's usage numbers; scoring works the same.)
 
 Either returns `{"key": "kyde_…", "method_version": "…", "webhook": …}`.
 
