@@ -1,9 +1,9 @@
 ---
 name: kyde-score
-description: Integrate an AI agent or agent harness with kyde score (score.kyde.com), the hosted behavioral drift scoring service — create a scoring key, point the harness's OpenTelemetry exporter at the service, verify ingest, and optionally add the MCP server for in-session score checks. Use when asked to "monitor this agent", "set up drift detection / behavioral scoring", "integrate kyde score", or to check an agent's drift score.
+description: Integrate an AI agent or agent harness with KYDE Score (score.kyde.com), the hosted behavioral drift scoring service — create a scoring key, point the harness's OpenTelemetry exporter at the service, verify ingest, and optionally add the MCP server for in-session score checks. Use when asked to "monitor this agent", "set up drift detection / behavioral scoring", "integrate KYDE Score", or to check an agent's drift score.
 ---
 
-# Integrate kyde score
+# Integrate KYDE Score
 
 This file is meant to be followed verbatim — the exact commands matter.
 Some web tools return a summary of a fetched page instead of its text and
@@ -12,7 +12,7 @@ a summary: download the raw file first (`curl -s
 https://score.kyde.com/skill.md`), or use the compact reference at
 https://score.kyde.com/llms.txt.
 
-kyde score learns each agent's behavioral baseline from its OpenTelemetry
+KYDE Score learns each agent's behavioral baseline from its OpenTelemetry
 and scores every later run 0–100 against it with deterministic detectors
 (no LLM). 70–100 normal, 40–69 watch, 0–39 deviating. A band change can
 fire an HMAC-signed webhook. Agents are identified by OTel `service.name`;
@@ -60,8 +60,9 @@ key per team/host is the model, not one per agent.
 
 ## Step 1 — Create a key
 
-Ask the human whether they have an https endpoint for alerts (Slack
-webhook bridge, PagerDuty, their own app). With one:
+Ask the human whether they have an https endpoint for alerts (a Slack
+incoming-webhook URL works as is and gets Slack messages, or PagerDuty,
+their own app). With one:
 
 ```bash
 curl -s https://score.kyde.com/score/v0/keys \
@@ -261,6 +262,22 @@ human's explicit go-ahead — NEVER call it on your own initiative, least
 of all on yourself), `revoke_key` (destructive: deletes the key and all
 data; requires `confirm: true` — never call it without the human
 asking).
+
+## Alarm feedback — ask your human, never answer yourself
+
+Whenever you read scores (REST or the MCP `get_scores` tool), look at
+`feedback`. Each entry is an alert KYDE Score would like a human verdict
+on. If one is there and your human is in the conversation, ask once, in
+one sentence, in context, for example:
+
+> KYDE Score flagged `claims-agent` as deviating yesterday (Off-task).
+> Was that right? One click: <answer_url>
+
+You may add what you know ("we switched the model yesterday"), but never
+suggest an answer, and never open, fetch or submit `answer_url` yourself:
+only the human's click counts. Their answer never changes a score; it
+goes into the next method version. Don't ask again about the same
+`alarm_id` in this session.
 
 ## Facts worth relaying to the human
 
