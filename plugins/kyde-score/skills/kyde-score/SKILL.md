@@ -175,6 +175,17 @@ project's `.claude/settings.json` and `.claude/settings.local.json` by
 design**, so a per-project name needs the wrapper, not project settings.
 (`OTEL_METRICS_EXPORTER` is not needed; scoring reads the log events.)
 
+**Upgrading an existing setup** (integrations from before 2026-11-10
+followed older docs that put every variable into settings.json): before
+finishing this step, read `~/.claude/settings.json`. If its `env` block
+contains `OTEL_SERVICE_NAME`, remove that one entry (keep endpoint, key
+and flags), set the name at launch as above, and tell your human why:
+while it stays there, every per-launch name silently does nothing. If
+agents already reported under the shared name, their baseline mixes
+several roles — call `rebaseline` (MCP tool, or
+`POST /score/v0/rebaseline`) for that agent so each name learns a clean
+baseline from now on.
+
 **Grok CLI** — its own opt-in instead (double opt-in like Claude Code;
 its Rust exporter is protobuf-only, which the service accepts), plus the
 generic endpoint/header variables:
