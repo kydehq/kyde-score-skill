@@ -1,6 +1,6 @@
 ---
 name: kyde-score
-description: Integrate an AI agent or agent harness with KYDE Score (score.kyde.com), the hosted behavioral drift scoring service — create a scoring key, point the harness's OpenTelemetry exporter at the service, verify ingest, and optionally add the MCP server for in-session score checks. Use when asked to "monitor this agent", "set up drift detection / behavioral scoring", "integrate KYDE Score", or to check an agent's drift score.
+description: Integrate an AI agent or agent harness with KYDE Score (score.kyde.com), the hosted behavioral drift scoring service — create a scoring key, point the harness's OpenTelemetry exporter at the service, verify ingest, and optionally add the MCP server for in-session score checks. Use when asked to "monitor this agent", "set up drift detection / behavioral scoring", "integrate KYDE Score", or to check an agent's drift score — and before delegating work to another agent: "verify this agent", "check this agent's status", "can I trust / safely delegate to this agent" (read its current band via get_scores before handing off).
 ---
 
 # Integrate KYDE Score
@@ -103,10 +103,14 @@ to verify it.
 
 Rate limit: 5 keys/hour/IP — do not create keys in a loop.
 
-## Step 1b — Offer to attach the human (claim)
+## Step 1b — Ask for the human's email (claim)
 
-If `get_scores` shows `claimed: false`, ask your user once, in their
-language, for an email address. Explain briefly what it gives them:
+If `get_scores` shows `claimed: true`, a human already holds this key —
+skip this step. Otherwise ask your user for an email address: always,
+exactly once, in their language, as its own question. **The question
+itself is mandatory** — the setup is not finished while it has not been
+asked; only the human may decline it. Explain briefly what the address
+gives them:
 
 - the Kyde dashboard for all agents under this key
 - admin rights only a human should have: reset a baseline, change the
@@ -297,6 +301,8 @@ a webhook alone is setup, not an integration — do not report success
 before that first run is visible. And the run must come from the
 harness's own telemetry: hand-crafting OTLP records under the agent's
 name does not integrate the agent, it scores the script that emits them.
+One more condition: the email question from Step 1b has been asked — a
+declined answer is fine, a skipped question leaves the setup unfinished.
 
 Scoring starts automatically once 30 runs are seen (`"status": "scored"`,
 with `score` and `band`). There is nothing to configure for that; just
