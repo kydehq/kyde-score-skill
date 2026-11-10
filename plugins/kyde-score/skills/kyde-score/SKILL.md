@@ -158,6 +158,11 @@ curl -fsSL https://score.kyde.com/install.sh | sh
 npx @kyde/score init
 ```
 
+The hook finds the key and endpoint in the environment or, when the
+environment is bare, in the `env` block of `~/.claude/settings.json`
+(Claude Code does not pass that block on to hook processes) — so both
+placements from the step below arm it.
+
 Choose the block mode per agent at launch, next to its name: a human
 reachable → keep the default (ask); unattended and able to do
 irreversible damage (deploy, mail, pay, delete, injection-prone
