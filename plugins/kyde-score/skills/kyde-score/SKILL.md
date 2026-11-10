@@ -146,12 +146,22 @@ explicitly (`http/protobuf` works from every SDK; `http/json` exists only
 in the JS ones).
 
 **Claude Code, one line** — sets the global half (never the name),
-installs a PostToolUse hook that warns the agent in its own context when
-its score deviates or a loop alarm fires, and verifies ingest end to end:
+installs the hook (PostToolUse warns the agent in its own context when
+its score deviates or a loop alarm fires; PreToolUse pauses the next
+tool call for the human on a deviating band or loop alarm —
+`KYDE_BLOCK=deny` blocks it outright, `KYDE_BLOCK=off` keeps warnings
+only), and verifies ingest end to end:
 
 ```bash
 curl -fsSL https://score.kyde.com/install.sh | sh
 ```
+
+Choose the block mode per agent at launch, next to its name: a human
+reachable → keep the default (ask); unattended and able to do
+irreversible damage (deploy, mail, pay, delete, injection-prone
+sources) → `KYDE_BLOCK=deny`; unattended and harmless (sandbox,
+read-only) → `KYDE_BLOCK=off`. An unattended "ask" just kills the
+call, so unattended agents always get an explicit deny or off.
 
 **Claude Code, by hand** — the generic variables (with `http/json` fine
 too) plus two more:
@@ -171,6 +181,16 @@ Where these go matters. Split the variables by how they vary:
   command that starts the agent (`env OTEL_SERVICE_NAME=invoice-agent
   claude`), in a wrapper script (export it, then `exec claude "$@"`), or
   in the workflow or service unit that launches the agent.
+
+On an interactive developer machine, a shell function in `~/.bashrc`
+(after the global exports) gives every project its own default name and
+stays overridable per launch:
+
+```sh
+claude() {
+  OTEL_SERVICE_NAME="${OTEL_SERVICE_NAME:-$USER-$(basename "$PWD")}" command claude "$@"
+}
+```
 
 Never put `OTEL_SERVICE_NAME` into `~/.claude/settings.json`: the
 settings `env` block **overrides the launch environment** (measured
