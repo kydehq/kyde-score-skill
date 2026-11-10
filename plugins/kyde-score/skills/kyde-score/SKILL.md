@@ -127,7 +127,8 @@ the human control layer.
 ## Step 2 — Point the harness's OTel exporter at the service
 
 Give every agent its own `OTEL_SERVICE_NAME`; that name is the unit of
-scoring.
+scoring. Set it where the agent is *launched*, never machine-globally —
+the split matters, see the Claude Code section below.
 
 **The generic way — any OTLP/HTTP exporter, any OTel SDK, Codex,
 OpenCode** (and the base every harness below builds on):
@@ -152,14 +153,27 @@ export CLAUDE_CODE_ENABLE_TELEMETRY=1
 export OTEL_LOGS_EXPORTER=otlp
 ```
 
-Where these go matters. They work from the shell that launches `claude`,
-from user-level `~/.claude/settings.json` (`"env"` block), or from managed
-settings. Claude Code **ignores OTel exporter variables in a project's
-`.claude/settings.json` and `.claude/settings.local.json` by design**, so
-for a per-project integration write a small wrapper script that exports
-the variables above and ends with `exec claude "$@"`, and launch that
-instead of `claude`. (`OTEL_METRICS_EXPORTER` is not needed; scoring reads
-the log events.)
+Where these go matters. Split the variables by how they vary:
+
+- **Global, once per machine** — endpoint, protocol, key header and the
+  two flags above. Put them in user-level `~/.claude/settings.json`
+  (`"env"` block; covers terminal, IDE and desktop app) or in the shell
+  profile. They are the same for every agent on the machine.
+- **Per agent, at launch** — `OTEL_SERVICE_NAME` only. Set it in the
+  command that starts the agent (`env OTEL_SERVICE_NAME=invoice-agent
+  claude`), in a wrapper script (export it, then `exec claude "$@"`), or
+  in the workflow or service unit that launches the agent.
+
+Never put `OTEL_SERVICE_NAME` into `~/.claude/settings.json`: the
+settings `env` block **overrides the launch environment** (measured
+2026-11-10 against the live service), so one global name silently merges
+every agent on the machine into a single blurred baseline — per-launch
+names lose without any error. Leaving the name unset is the same trap:
+Claude Code then reports as `claude-code`, and all agents merge under
+that default. Claude Code also **ignores OTel exporter variables in a
+project's `.claude/settings.json` and `.claude/settings.local.json` by
+design**, so a per-project name needs the wrapper, not project settings.
+(`OTEL_METRICS_EXPORTER` is not needed; scoring reads the log events.)
 
 **Grok CLI** — its own opt-in instead (double opt-in like Claude Code;
 its Rust exporter is protobuf-only, which the service accepts), plus the
