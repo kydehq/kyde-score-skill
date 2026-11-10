@@ -154,6 +154,8 @@ only), and verifies ingest end to end:
 
 ```bash
 curl -fsSL https://score.kyde.com/install.sh | sh
+# or, same installer via npm (never drifts — it runs exactly that script):
+npx @kyde/score init
 ```
 
 Choose the block mode per agent at launch, next to its name: a human
