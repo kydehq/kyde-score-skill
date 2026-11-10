@@ -145,8 +145,16 @@ OTLP/HTTP as binary protobuf or JSON — set `OTEL_EXPORTER_OTLP_PROTOCOL`
 explicitly (`http/protobuf` works from every SDK; `http/json` exists only
 in the JS ones).
 
-**Claude Code** — the generic variables (with `http/json` fine too) plus
-two more:
+**Claude Code, one line** — sets the global half (never the name),
+installs a PostToolUse hook that warns the agent in its own context when
+its score deviates or a loop alarm fires, and verifies ingest end to end:
+
+```bash
+curl -fsSL https://score.kyde.com/install.sh | sh
+```
+
+**Claude Code, by hand** — the generic variables (with `http/json` fine
+too) plus two more:
 
 ```bash
 export CLAUDE_CODE_ENABLE_TELEMETRY=1
