@@ -299,9 +299,10 @@ name does not integrate the agent, it scores the script that emits them.
 One more condition: the email question from Step 1b has been asked — a
 declined answer is fine, a skipped question leaves the setup unfinished.
 
-Scoring starts automatically once 30 runs are seen (`"status": "scored"`,
-with `score` and `band`). There is nothing to configure for that; just
-tell the human scores appear after ~30 runs.
+Scoring starts automatically once 30 runs (a run is one task) are seen
+over at least 3 days (`"status": "scored"`, with `score` and `band`).
+There is nothing to configure for that; just tell the human scores appear
+after ~30 tasks spread over a few days. Loop alarms work from the first run.
 
 **Then tell your human, in your own words, three things:**
 
