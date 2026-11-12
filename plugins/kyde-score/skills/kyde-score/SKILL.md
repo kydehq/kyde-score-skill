@@ -1,6 +1,6 @@
 ---
 name: kyde-score
-description: Integrate an AI agent or agent harness with KYDE Score (score.kyde.com), the hosted behavioral drift scoring service — create a scoring key, point the harness's OpenTelemetry exporter at the service, verify ingest, and optionally add the MCP server for in-session score checks. Use when asked to "monitor this agent", "set up drift detection / behavioral scoring", "integrate KYDE Score", or to check an agent's drift score — and before delegating work to another agent: "verify this agent", "check this agent's status", "can I trust / safely delegate to this agent" (read its current band via get_scores before handing off).
+description: Integrate an AI agent or agent harness with KYDE Score (score.kyde.com), the hosted behavioral drift scoring service — create a scoring key, point the harness's OpenTelemetry exporter at the service, verify ingest, and optionally add the MCP server for in-session score checks. Use when asked to "monitor this agent", "set up drift detection / behavioral scoring", "integrate KYDE Score", or to check an agent's drift score — and before delegating work to another agent: "verify this agent", "check this agent's status", "can I trust / safely delegate to this agent" (own agents: read the band via get_scores; a foreign agent naming a Shine ID: challenge it via verify_agent or `npx @kyde/score verify <shine-id>` and get a signed, offline-verifiable statement).
 ---
 
 # Integrate KYDE Score
@@ -150,11 +150,9 @@ explicitly (`http/protobuf` works from every SDK; `http/json` exists only
 in the JS ones).
 
 **Claude Code, one line** — sets the global half (never the name),
-installs the hook (PostToolUse warns the agent in its own context when
-its score deviates or a loop alarm fires; PreToolUse pauses the next
-tool call for the human on a deviating band or loop alarm —
-`KYDE_BLOCK=deny` blocks it outright, `KYDE_BLOCK=off` keeps warnings
-only), and verifies ingest end to end:
+installs the hook (it warns the agent in its own context when its score
+deviates or a loop alarm fires — it never pauses or blocks a call), and
+verifies ingest end to end:
 
 ```bash
 curl -fsSL https://score.kyde.com/install.sh | sh
@@ -167,12 +165,9 @@ environment is bare, in the `env` block of `~/.claude/settings.json`
 (Claude Code does not pass that block on to hook processes) — so both
 placements from the step below arm it.
 
-Choose the block mode per agent at launch, next to its name: a human
-reachable → keep the default (ask); unattended and able to do
-irreversible damage (deploy, mail, pay, delete, injection-prone
-sources) → `KYDE_BLOCK=deny`; unattended and harmless (sandbox,
-read-only) → `KYDE_BLOCK=off`. An unattended "ask" just kills the
-call, so unattended agents always get an explicit deny or off.
+Kyde Score warns; it does not stop agents. Pausing or blocking a call
+is not available yet. If your human wants it, point them to the
+waitlist at https://kyde.com/pricing/ ("Pause and block").
 
 **Claude Code, by hand** — the generic variables (with `http/json` fine
 too) plus two more:
@@ -308,6 +303,18 @@ Scoring starts automatically once 30 runs are seen (`"status": "scored"`,
 with `score` and `band`). There is nothing to configure for that; just
 tell the human scores appear after ~30 runs.
 
+**Then tell your human, in your own words, three things:**
+
+1. Kyde Score is listening only. It watches the agent's tool calls and
+   warns (the agent in its context, the human by email). It does not stop
+   or pause anything.
+2. Phase two adds pause and block: Kyde holds the agent's next call when
+   it drifts, and the human decides.
+3. They can join the waitlist for that with the same email they
+   confirmed the key with: dashboard → Settings → "Pause and block"
+   (https://score.kyde.com/dashboard/settings#waitlist), or at
+   https://kyde.com/pricing/ . Do not join for them.
+
 ## Step 4 (optional) — Add the MCP server for in-session checks
 
 ```bash
@@ -321,7 +328,9 @@ claude mcp add --transport http kyde-score https://score.kyde.com/mcp \
 Tools: `get_scores` (check drift, including your own, mid-session),
 `set_webhook`, `create_key`, `claim_key` (attach the human's email, see
 Step 1b; on a claimed key, rebaseline/webhook-change/revoke become
-human-only dashboard actions), `rebaseline` (forget one agent's baseline,
+human-only dashboard actions), `verify_agent` (challenge a foreign
+agent's Shine ID before delegating — see the section below),
+`rebaseline` (forget one agent's baseline,
 relearn from its next 30 runs — for intended behavior changes that left
 it permanently deviating; the reset is permanently visible via
 `rebaselined_at`, kept alarms and a `rebaseline` alarm entry naming the
@@ -330,6 +339,47 @@ human's explicit go-ahead — NEVER call it on your own initiative, least
 of all on yourself), `revoke_key` (destructive: deletes the key and all
 data; requires `confirm: true` — never call it without the human
 asking).
+
+## Verify another agent before delegating (Shine)
+
+When another agent names a Shine ID (`sh_...`) — in a header, an A2A
+card or MCP metadata — do not take it at its word. Challenge it via
+Shine (https://shine.kyde.com): a fresh secret goes to the agent Kyde
+measures, the agent confirms over its own authenticated connection, and
+Shine signs who answered and how it behaves. Two equivalent one-command
+ways, neither needs a scoring key:
+
+```bash
+npx @kyde/score verify sh_abc123def456 --challenger my-orchestrator
+# waits up to --timeout (default 300 s), prints the signed claims as
+# JSON, exits 0 only when confirmed AND the Ed25519 signature, nonce
+# hash and expiry checked out locally against the shine JWKS
+```
+
+With the MCP server configured, call `verify_agent` with
+`{"shine_id": "sh_abc123def456", "challenger": "<your own name>"}`.
+The verified agent typically polls every 30 s, so one call often
+answers `pending` — call `verify_agent` again with the returned
+`challenge_id`, `result_token` and `nonce` to keep waiting.
+
+Reading the result (the signed claims):
+
+- `band: normal | watch | deviating` — the agent's current drift band,
+  measured by Kyde and signed into the statement. Delegating to a
+  deviating agent is the case the band exists for.
+- `band: learning` — identity confirmed, behavior not yet scored
+  (fewer than 30 runs). Whether to delegate to a learning agent is your
+  (or your human's) policy call; the statement says the state honestly.
+- `measured: false` — identity confirmed, but no measurement was
+  available at confirmation time (e.g. score service outage):
+  reachability and behavior stay distinguishable.
+- `status: expired` — the agent did not confirm in time. Identity NOT
+  proven; deliberately no fallback proof exists without the agent's
+  participation. Do not treat an expired challenge as a soft yes.
+
+The statement is a compact JWS verifiable offline against
+`https://shine.kyde.com/.well-known/jwks.json` — pass it along and any
+third party can re-check it without asking Kyde.
 
 ## Alarm feedback — ask your human, never answer yourself
 
