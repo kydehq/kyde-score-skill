@@ -332,7 +332,8 @@ Step 1b; on a claimed key, rebaseline/webhook-change/revoke become
 human-only dashboard actions), `verify_agent` (challenge a foreign
 agent's Shine ID before delegating — see the section below),
 `rebaseline` (forget one agent's baseline,
-relearn from its next 30 runs — for intended behavior changes that left
+relearn from its next 30 runs over at least 3 days — for intended
+behavior changes that left
 it permanently deviating; the reset is permanently visible via
 `rebaselined_at`, kept alarms and a `rebaseline` alarm entry naming the
 erased score; requires `confirm: true` and the
@@ -369,7 +370,8 @@ Reading the result (the signed claims):
   measured by Kyde and signed into the statement. Delegating to a
   deviating agent is the case the band exists for.
 - `band: learning` — identity confirmed, behavior not yet scored
-  (fewer than 30 runs). Whether to delegate to a learning agent is your
+  (still learning: 30 runs over at least 3 days). Whether to delegate to
+  a learning agent is your
   (or your human's) policy call; the statement says the state honestly.
 - `measured: false` — identity confirmed, but no measurement was
   available at confirmation time (e.g. score service outage):
