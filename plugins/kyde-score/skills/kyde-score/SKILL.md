@@ -151,7 +151,9 @@ in the JS ones).
 
 **Claude Code, one line** — sets the global half (never the name),
 installs the hook (it warns the agent in its own context when its score
-deviates or a loop alarm fires — it never pauses or blocks a call), and
+deviates or a loop alarm fires — it never pauses or blocks a call; before
+a call it hashes the call's recipient fields locally and sends only the
+hashes, for the recipient check), and
 verifies ingest end to end:
 
 ```bash
