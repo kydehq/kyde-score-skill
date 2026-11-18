@@ -236,12 +236,16 @@ Grok CLI pins `service.name` to `grok-cli` and ignores
 `OTEL_SERVICE_NAME`, so all Grok agents under one key currently score as
 a single agent.
 
-**Framework agents** (Vercel AI SDK, LangGraph, OpenAI Agents, custom
-loops): no Kyde SDK needed — add any GenAI instrumentation that emits
-`gen_ai.*` spans (OpenLLMetry, OpenInference, vendor telemetry) and point
-its OTLP exporter at the service with the same variables. Tool spans
-(`gen_ai.tool.name`, or `gen_ai.operation.name=execute_tool`) are scored
-like tool events; content attributes are never read.
+**Framework agents** (Vercel AI SDK, LangGraph, OpenAI Agents, CrewAI,
+LlamaIndex, custom loops): no Kyde SDK needed — add any GenAI
+instrumentation and point its OTLP exporter at the service with the same
+variables. Tool spans in all three common dialects are scored like tool
+events: OTel GenAI semconv (`gen_ai.tool.name`, or
+`gen_ai.operation.name=execute_tool`), OpenInference
+(`openinference.span.kind=TOOL` + `tool.name` — the Arize/Phoenix
+instrumentations), and OpenLLMetry (`traceloop.span.kind=tool` +
+`traceloop.entity.name` — the Traceloop instrumentations). Content
+attributes are never read.
 
 **OTel Collector in between** (recommended when telemetry must be
 scrubbed before leaving a network): add an `otlphttp` exporter with
