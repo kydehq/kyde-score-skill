@@ -219,7 +219,7 @@ and flags), set the name at launch as above, and tell your human why:
 while it stays there, every per-launch name silently does nothing. If
 agents already reported under the shared name, their baseline mixes
 several roles — call `rebaseline` (MCP tool, or
-`POST /score/v0/rebaseline`) for that agent so each name learns a clean
+`POST /score/v0/agents/<service_name>/rebaseline`) for that agent so each name learns a clean
 baseline from now on.
 
 **Grok CLI** — its own opt-in instead (double opt-in like Claude Code;
@@ -340,11 +340,22 @@ agent's Shine ID before delegating — see the section below),
 `rebaseline` (forget one agent's baseline,
 relearn from its next 30 runs over at least 3 days — for intended
 behavior changes that left
-it permanently deviating; the reset is permanently visible via
+it permanently deviating; record why with `kind` — role_change,
+model_change, prompt_change, tool_change, other — and a one-sentence
+`reason`: both land in the alarm, the timeline and the webhook event;
+the reset is permanently visible via
 `rebaselined_at`, kept alarms and a `rebaseline` alarm entry naming the
 erased score; requires `confirm: true` and the
 human's explicit go-ahead — NEVER call it on your own initiative, least
-of all on yourself), `revoke_key` (destructive: deletes the key and all
+of all on yourself; a deviating agent's `get_scores` entry carries
+`proposed_action` with this exact call),
+`announce_change` (declare a wanted change — new model, new prompt, new
+tool, new role — BEFORE it ships: drift from the announced change is
+then held in the announcement's summary instead of alarming the human,
+while rule violations and unannounced shifts alarm as before; the
+agent's `get_scores` entry shows it under `notices` with the
+`rebaseline {announcement_id}` call that accepts the new baseline;
+needs the human's go-ahead, since it mutes deliveries), `revoke_key` (destructive: deletes the key and all
 data; requires `confirm: true` — never call it without the human
 asking).
 
