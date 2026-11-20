@@ -359,6 +359,20 @@ needs the human's go-ahead, since it mutes deliveries), `revoke_key` (destructiv
 data; requires `confirm: true` — never call it without the human
 asking).
 
+For the plain-values view use
+`GET /score/v0/agents/<service_name>/behavior`: tool mix, error rate,
+median duration and calls per run — baseline against now, or
+so-far against the window while the agent is still learning.
+
+For the trend over time use `GET /score/v0/history?service_name=…`:
+score and band per run, each band change with its reason, rebaselines
+and model changes alongside — the story behind the current number.
+
+While an agent is still learning with no real alarm, its `get_scores`
+entry carries a `notices` item of type `sample_alarm` (`sample: true`):
+an example of what an alarm will read like. NEVER relay the sample as a
+real alarm — real alarms carry an `alarm_id`.
+
 ## Verify another agent before delegating (Shine)
 
 When another agent names a Shine ID (`sh_...`) — in a header, an A2A
