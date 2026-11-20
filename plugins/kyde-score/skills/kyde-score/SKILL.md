@@ -373,6 +373,14 @@ entry carries a `notices` item of type `sample_alarm` (`sample: true`):
 an example of what an alarm will read like. NEVER relay the sample as a
 real alarm — real alarms carry an `alarm_id`.
 
+Every key starts on the free plan (`get_scores` carries `plan` at the
+top level): one instant alert mail per calendar month, the rest waits
+for the Monday weekly review. When that one mail is used up, the agent's
+entry carries a `notices` item of type `alert_held` — tell your human
+that an alert is waiting in the weekly review (webhooks and this API
+saw every alarm immediately; only mail waits). Upgrading to paid is the
+human's decision, never yours.
+
 ## Verify another agent before delegating (Shine)
 
 When another agent names a Shine ID (`sh_...`) — in a header, an A2A
