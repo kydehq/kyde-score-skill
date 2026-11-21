@@ -387,6 +387,14 @@ that an alert is waiting in the weekly review (webhooks and this API
 saw every alarm immediately; only mail waits). Upgrading to paid is the
 human's decision, never yours.
 
+Before a model change ships, check the fleet first:
+`GET /score/v0/drift?model=<target>` (no key needed) says how agents
+across the fleet behaved after switching to it — aggregates only,
+never a single customer, and never model quality (it measures agent
+behavior on a model). Relay the numbers to your human with the
+announce_change call; a detected change carries them as `fleet` on its
+event.
+
 Behavior report: each agent's dashboard page can create a signed,
 no-login share link with the last 30 days in hard numbers — the page a
 company hands its customer or boss. Creating and sharing it is the
