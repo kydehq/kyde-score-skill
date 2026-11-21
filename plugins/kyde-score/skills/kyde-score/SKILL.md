@@ -387,6 +387,13 @@ that an alert is waiting in the weekly review (webhooks and this API
 saw every alarm immediately; only mail waits). Upgrading to paid is the
 human's decision, never yours.
 
+Behavior report: each agent's dashboard page can create a signed,
+no-login share link with the last 30 days in hard numbers — the page a
+company hands its customer or boss. Creating and sharing it is the
+HUMAN's action; you may suggest it ("you can share a behavior report
+from the dashboard"), never create or send one yourself. Links are
+revocable at once in Settings.
+
 Declared contract (measuring free, stopping paid): once a human
 confirmed a proposed contract, violations alarm on every plan, and on
 the paid plan the Claude Code hook HOLDS a call outside the contract
@@ -435,6 +442,15 @@ Reading the result (the signed claims):
 - `status: expired` — the agent did not confirm in time. Identity NOT
   proven; deliberately no fallback proof exists without the agent's
   participation. Do not treat an expired challenge as a soft yes.
+- Claims v1 adds facts, never judgments: `contract` and `frame` (the
+  confirmed declared contract and organization frame as triples
+  {hash, schema_version, confirmed_at}; null = none confirmed),
+  `compliance` ({state: none|too_young|measured, since, days} — under
+  14 days the honest answer is too_young, not a number), `holds_band`
+  (none|low|elevated over the last 90 days, never a raw count),
+  `method_version`, and `false_alarms` — reserved and null until the
+  number is presentable. **null never means zero.** The statement says
+  what was measured, never "safe".
 
 The statement is a compact JWS verifiable offline against
 `https://shine.kyde.com/.well-known/jwks.json` — pass it along and any
