@@ -308,6 +308,25 @@ name does not integrate the agent, it scores the script that emits them.
 One more condition: the email question from Step 1b has been asked — a
 declined answer is fine, a skipped question leaves the setup unfinished.
 
+**Name and describe the agent (the last setup step).** The
+`service.name` is the agent's fixed ID: pick one per agent that says
+its role (`inbox-assistant`, `invoice-clerk`), never a default like
+`claude-code`, and never rename it later (the baseline hangs on it).
+Then suggest how humans see the agent, with a display name and one
+plain sentence of purpose:
+
+```bash
+curl -s -X PUT https://score.kyde.com/score/v0/agents/<SERVICE_NAME>/profile \
+  -H "x-kyde-key: <KEY>" -H 'content-type: application/json' \
+  -d '{"display_name":"Inbox assistant","purpose":"Sorts the inbox and writes drafts"}'
+```
+
+(or the MCP tool `describe_agent`). Describe it honestly: next to your
+words the dashboard shows what Kyde measured from the tools ("Seen:
+reads files, runs shell commands"), and flags an outbound action (send,
+pay, delete, publish) the purpose doesn't mention. Your human can change
+name and purpose; after that, your suggestion is no longer applied.
+
 Scoring starts automatically once 30 runs (a run is one task) are seen
 over at least 3 days (`"status": "scored"`, with `score` and `band`).
 There is nothing to configure for that; just tell the human scores appear
