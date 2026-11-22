@@ -151,9 +151,11 @@ in the JS ones).
 
 **Claude Code, one line** — sets the global half (never the name),
 installs the hook (it warns the agent in its own context when its score
-deviates or a loop alarm fires — it never pauses or blocks a call; before
-a call it hashes the call's recipient fields locally and sends only the
-hashes, for the recipient check), and
+deviates or a loop alarm fires; before a call it hashes the call's
+recipient fields locally and sends only the hashes, for the recipient
+check; on the Pro plan and above, with a human-confirmed contract, it
+HOLDS a call outside that contract before execution and tells the
+agent why — the human releases it by mail or dashboard), and
 verifies ingest end to end:
 
 ```bash
@@ -167,9 +169,10 @@ environment is bare, in the `env` block of `~/.claude/settings.json`
 (Claude Code does not pass that block on to hook processes) — so both
 placements from the step below arm it.
 
-Kyde Score warns; it does not stop agents. Pausing or blocking a call
-is not available yet. If your human wants it, point them to the
-waitlist at https://kyde.com/pricing/ ("Pause and block").
+Measuring is free on every plan. Holding a call before execution is
+the Pro plan and above: it needs a contract your human confirmed, and
+only your human can release a held call (approve once, approve and
+extend the contract, or deny). Plans: https://kyde.com/pricing/
 
 **Claude Code, by hand** — the generic variables (with `http/json` fine
 too) plus two more:
@@ -312,15 +315,15 @@ after ~30 tasks spread over a few days. Loop alarms work from the first run.
 
 **Then tell your human, in your own words, three things:**
 
-1. Kyde Score is listening only. It watches the agent's tool calls and
-   warns (the agent in its context, the human by email). It does not stop
-   or pause anything.
-2. Phase two adds pause and block: Kyde holds the agent's next call when
-   it drifts, and the human decides.
-3. They can join the waitlist for that with the same email they
-   confirmed the key with: dashboard → Settings → "Pause and block"
-   (https://score.kyde.com/dashboard/settings#waitlist), or at
-   https://kyde.com/pricing/ . Do not join for them.
+1. Measuring is free on every plan: Kyde Score watches the agent's
+   tool calls and warns (the agent in its context, the human by
+   email). Violations of a confirmed contract alarm like any alert.
+2. Holding is Pro and above: with a human-confirmed contract, the
+   hook holds a call outside it BEFORE execution, with one reason
+   sentence. The human decides by mail or dashboard: approve once,
+   approve and extend the contract, or deny.
+3. Never confirm, widen, or release anything yourself. If your human
+   wants holding, point them to https://kyde.com/pricing/ .
 
 ## Step 4 (optional) — Add the MCP server for in-session checks
 
