@@ -1,5 +1,6 @@
 {
   "name": "kyde-score-skill",
+  "description": "Kyde Score plugins: behavioral drift scoring for AI agents (score.kyde.com). kyde-score sets up any OpenTelemetry harness; kyde-score-cowork adds the hooks for Claude Desktop and Cowork.",
   "owner": {
     "name": "Kyde",
     "url": "https://kyde.com"
@@ -8,7 +9,12 @@
     {
       "name": "kyde-score",
       "source": "./plugins/kyde-score",
-      "description": "Integrate an agent harness with kyde score (score.kyde.com): create a scoring key, point the OpenTelemetry exporter at the service, verify ingest, optionally add the MCP server for in-session drift checks."
+      "description": "Claude Code / any OpenTelemetry harness: create a scoring key, point the OTel exporter at the service, verify ingest, optionally add the MCP server for in-session drift checks. Skill-based setup, no hooks."
+    },
+    {
+      "name": "kyde-score-cowork",
+      "source": "./plugins/kyde-score-cowork",
+      "description": "Claude Desktop / Cowork: hooks report each tool call to score.kyde.com (never content), warn on drift, and hold a call outside the human-confirmed contract (Pro and up). Includes the kyde-score MCP server (remote) and the setup skill."
     }
   ]
 }

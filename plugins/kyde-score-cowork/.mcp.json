@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "kyde-score": {
+      "type": "http",
+      "url": "https://score.kyde.com/mcp",
+      "headers": { "x-kyde-key": "${user_config.kyde_key}" }
+    }
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "name": "kyde-score-cowork",
+  "version": "0.2.0",
+  "description": "Kyde Score for Claude Desktop / Cowork tasks: reports each tool call (tool name, success, duration, session; never content) to score.kyde.com, warns the agent when its behavior deviates from its baseline, holds a call outside the human-confirmed contract (Pro and up), and answers 'How is my Kyde score?'.",
+  "author": {
+    "name": "Kyde",
+    "url": "https://kyde.com"
+  },
+  "homepage": "https://score.kyde.com",
+  "privacyPolicyUrl": "https://kyde.com/legal/",
+  "license": "Apache-2.0",
+  "keywords": [
+    "kyde",
+    "behavioral-scoring",
+    "ai-agents",
+    "telemetry"
+  ],
+  "hooks": "./hooks/hooks.json",
+  "mcpServers": "./.mcp.json",
+  "userConfig": {
+    "kyde_key": {
+      "type": "string",
+      "title": "Kyde key",
+      "description": "Your scoring key (kyde_...). Leave empty and ask Claude to 'set up Kyde' to create one.",
+      "sensitive": true,
+      "required": false
+    },
+    "agent_name": {
+      "type": "string",
+      "title": "Agent name",
+      "description": "Name of this agent in the Kyde dashboard. Cowork tasks run on a new cloud machine each time, so the name must not depend on the machine.",
+      "default": "cowork",
+      "required": false
+    }
+  }
+}
