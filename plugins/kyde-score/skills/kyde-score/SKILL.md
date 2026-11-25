@@ -58,6 +58,43 @@ Look before creating anything: an `OTEL_EXPORTER_OTLP_ENDPOINT` containing
 `kyde-score` MCP server entry means a key already exists. Reuse it; one
 key per team/host is the model, not one per agent.
 
+## Step 0c — Pick the install channel (and keep it current)
+
+Each piece of the integration has one channel that stays current on its
+own and others that go stale. Pick by who you are (Step 0), prefer the
+self-updating channel, and when you do install a static copy, install
+its update path with it.
+
+| You are | Telemetry (scoring) | This skill | MCP (in-session checks) |
+|---|---|---|---|
+| Claude Code (CLI/IDE) | `npx @kyde/score init` (hook + env) | plugin `kyde-score@kyde-score-skill` + enable auto-update | `claude mcp add` (Step 4; remote) |
+| Claude Desktop / Cowork | plugin `kyde-score-cowork@kyde-score-skill` (hooks bundled) | same plugin (setup skill bundled) | bundled in the plugin (remote) |
+| Claude.ai web | not available (no exporter) | read llms.txt live | custom connector: `https://score.kyde.com/mcp` |
+| Grok CLI | env vars (Step 2) | read llms.txt live | the harness's MCP config, if it has one |
+| Hosted agent product (Grok Bot, …) | not available (Step 0) | — | the product's connector feature, if any |
+| SDK / framework agent | env vars + GenAI instrumentation (Step 2) | — | MCP client config in code (Step 4) |
+
+How each channel stays current:
+
+- **Remote MCP** (`https://score.kyde.com/mcp`) and **llms.txt** are
+  live — nothing to update, ever.
+- **Plugins**: every release bumps the marketplace version, but
+  third-party marketplaces do NOT auto-update by default in Claude
+  Code. Enabling it is part of installing: after
+  `claude plugin marketplace add kydehq/kyde-score-skill` and
+  `claude plugin install kyde-score@kyde-score-skill`, turn on
+  auto-update for `kyde-score-skill` (`/plugin` → Marketplaces), or
+  new versions never arrive.
+- **The hook and env setup** (`npx @kyde/score init`, or install.sh —
+  the same script) is a static copy: re-running the exact same command
+  updates it, and `npx` always resolves the latest published version.
+- **A local SKILL.md copy** (`curl …/skill.md` into a skills dir) is a
+  snapshot that silently goes stale — prefer the plugin. If the copy is
+  the only option, note next to it where it came from and re-fetch on
+  the next integration touch.
+- **The four OTel variables** (Step 2) are deliberately stable; they
+  need no update mechanism.
+
 ## Step 1 — Create a key
 
 Ask the human whether they have an https endpoint for alerts (a Slack
