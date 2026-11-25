@@ -14,6 +14,12 @@ claude plugin marketplace add kydehq/kyde-score-skill
 claude plugin install kyde-score@kyde-score-skill
 ```
 
+Third-party marketplaces do not auto-update by default, so turn it on once:
+in a Claude Code session run `/plugin`, open **Marketplaces**, select
+`kyde-score-skill` and enable auto-update — new plugin versions then arrive in
+the background. Without it, update manually with
+`claude plugin update kyde-score@kyde-score-skill`.
+
 ## Or install the skill file directly
 
 ```bash
